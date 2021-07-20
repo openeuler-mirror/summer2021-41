@@ -2,13 +2,14 @@
 #include <getopt.h>
 #include <limits.h>
 #include "global_info.h"
+#include "user_procinfo.h"
 
 int main(int argc, char *argv[]){
 
     int c, idx = 0;
     // 格式 a 只有选项不带参数
     // a:   其后需要跟参数
-    const static char *Qury = "agck";
+    const static char *Qury = "agckt";
     enum {
         SI_OPTION = CHAR_MAX + 1,
         KILO_OPTION,
@@ -39,16 +40,18 @@ int main(int argc, char *argv[]){
                 global_info();
                 break;
             case 'c':
-//                test_curse();
                 test_color();
                 break;
             case 'k':
                 kernel_memory();
                 break;
+            case 't':
+                test_read_proc();
+//                user_memory_info();
+                break;
             default:
-                printf("Error \n");
+                printf("Error Command\n");
         }
     }
-    printf("Done!");
     return 0;
 }
