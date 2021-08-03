@@ -7,9 +7,23 @@
 
 #include <proc/readproc.h>
 
+struct procs_show_settings{
+   int flag;
+   int show_nums;
+   char* pids;
+};
+
+#define MEMO_GLOBAL_FLAG (1 << 0)
+#define MEMO_USED_FLAG (1 << 1)
+#define MEMO_KERNEL_FLAG (1 << 2)
+#define MEMO_PROCESS_FLAG (1 << 3)
+#define MEMO_PID_FLAG (1 << 4)
+#define MEMO_TOPN_FLAG (1 << 5)
+#define MEMO_REVERSE_FLAG (1 << 6)
+#define MEMO_VSS_FLAG (1 << 7)
+
 extern void user_memory_info();
-extern void test_read_proc();
-extern void used_memory_info();
+extern void user_procs(struct procs_show_settings* setting);
 
 #ifdef STRINGCASENO
 #define STRSTR  strcasestr

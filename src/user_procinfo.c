@@ -124,9 +124,21 @@ static int Rss_memo_based (const proc_t **x, const proc_t **y) {
     return 0;
 } // end: Rss_memo_based
 
+static int Rss_memo_based_reverse (const proc_t **x, const proc_t **y) {
+    if ( (*x)->vm_rss < (*y)->vm_rss ) return -1;
+    if ( (*x)->vm_rss > (*y)->vm_rss ) return  1;
+    return 0;
+} // end: Rss_memo_based
+
 static int Vss_memo_based (const proc_t **x, const proc_t **y) {
     if ( (*x)->vm_size > (*y)->vm_size ) return -1;
     if ( (*x)->vm_size < (*y)->vm_size ) return  1;
+    return 0;
+} // end: Vss_memo_based
+
+static int Vss_memo_based_reverse (const proc_t **x, const proc_t **y) {
+    if ( (*x)->vm_size < (*y)->vm_size ) return -1;
+    if ( (*x)->vm_size > (*y)->vm_size ) return  1;
     return 0;
 } // end: Vss_memo_based
 
@@ -272,22 +284,101 @@ static void procs_refresh (void) {
 #undef n_used
 } // end: procs_refresh
 
-void procs_show(unsigned int flag, proc_t **private_ppt ){
-    qsort(private_ppt, Frame_maxtask, sizeof(struct proc_t *), (QFP_t)Rss_memo_based);
+void procs_show(unsigned int flag, proc_t **private_ppt, struct procs_show_settings* setting){
+    QFP_t cmp = (QFP_t)Rss_memo_based;
 
-    printf("%-12s %-21s %-15s %-18s %-15s %-5s \n", "PID", "NAME", "USER","RSS", "VSS", "STATE");
+    if(setting->flag & MEMO_REVERSE_FLAG){
+        if(setting->flag & MEMO_VSS_FLAG){
+            cmp = (QFP_t)Vss_memo_based_reverse; 
+        }else{
+            cmp = (QFP_t)Rss_memo_based_reverse;
+        }
+    }else if(setting->flag & MEMO_VSS_FLAG){
+        cmp = (QFP_t)Vss_memo_based;
+    }
+    qsort(Winstk[0].ppt, Frame_maxtask, sizeof(struct proc_t *), cmp);
 
-    for(int i = 0; i < 10; i++){
-        printf("%-5d | %-20s | %-10s | %-15ld kB | %-15ld kB |   %c\n" ,private_ppt[i]->tid,private_ppt[i]->cmd,
-               private_ppt[i]->ruser, private_ppt[i]->vm_rss, private_ppt[i]->vm_size, private_ppt[i]->state);
+
+    if(setting->show_nums > Frame_maxtask){
+        printf("Error! Total have %d tasks.\n", Frame_maxtask);
+        return;
     }
 
-    printf("proc used: %ld kB\n", kb_procs_rss);
+    int *pids = NULL;
+    int pids_malloc = 0;
+    int pids_cur = 0;
+
+    if(setting->pids != NULL){
+        pids = (int*)malloc(sizeof(int) * 10);
+        pids_malloc = 10;
+
+        for(int i = 0, num = 0; setting->pids[i] != '\0'; i++){
+            char c = setting->pids[i];
+            if(c == ',' || setting->pids[i + 1] == '\0'){
+                if(c != ','){
+                    num = num * 10 + c - '0';
+                }
+                if(pids_cur + 1 == pids_malloc){
+                    int *tmp = pids;
+                    pids = (int*)realloc(tmp, sizeof(int) * pids_malloc * 2);
+                    pids_malloc *= 2;
+                }
+                pids[pids_cur++] = num;
+                num = 0;
+            }else if(c >= '0' && c <= '9'){
+                num = num * 10 + c - '0';
+            }else{
+                printf("Error input %s \n", setting->pids);
+                exit(-1);
+            }
+        }
+    }
+
+
+    printf("%-18s %-21s %-13s %-18s %-17s %-5s \n", "PID", "NAME", "USER","RSS", "VSS", "STATE");
+
+    if(pids == NULL){
+        for(int i = 0; i < setting->show_nums ; i++){
+            printf("%-10d | %-20s | %-10s | %-15ld kB | %-15ld kB |   %c\n" ,private_ppt[i]->tid,private_ppt[i]->cmd,
+            private_ppt[i]->ruser, private_ppt[i]->vm_rss, private_ppt[i]->vm_size, private_ppt[i]->state);
+        }
+    }else{
+        int has_not_found = 0;
+        for(int i = 0; i < pids_cur; i++){
+            int find = 0;
+            for(int j = 0; j < setting->show_nums; j++){
+                if(pids[i] == private_ppt[j]->tid){
+                    printf("%-10d | %-20s | %-10s | %-15ld kB | %-15ld kB |   %c\n" ,private_ppt[j]->tid,private_ppt[j]->cmd,
+                        private_ppt[j]->ruser, private_ppt[j]->vm_rss, private_ppt[j]->vm_size, private_ppt[j]->state); 
+                    find = 1;
+                    break;
+                }
+            }
+
+            if(find == 0){
+                pids[i] = -pids[i];
+                has_not_found = 1; 
+            }
+        }   
+        if(has_not_found == 1){
+            printf("Not found pids: ");
+            for(int i = 0; i < pids_cur; i++){
+                if(pids[i] < 0){
+                    printf("%d ", -pids[i]);
+                }
+            }
+            printf("\n");
+        }
+
+    }
+   
+    printf("Proc total used: %ld kB\n", kb_procs_rss);
+
+    free(pids);
 }
 
 void used_memory_show(){
     struct commandline_arguments args;
-
     /* defaults */
     args.exponent = 0;
     args.repeat_interval = 1000000;
@@ -305,9 +396,11 @@ void used_memory_show(){
     printf("\n");
 }
 
-void test_read_proc(){
+void user_procs(struct procs_show_settings* setting){
     procs_refresh();
-    procs_show(0, Winstk[0].ppt);
+    // printf("N: %d, Most: %d", n, Frame_maxtask);
+
+    procs_show(0, Winstk[0].ppt, setting);
 }
 
 void used_memory_info(){

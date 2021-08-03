@@ -4,21 +4,10 @@
 #include "global_info.h"
 #include "user_procinfo.h"
 
-#define MEMO_GLOBAL_FLAG (1 << 0)
-#define MEMO_USED_FLAG (1 << 1)
-#define MEMO_KERNEL_FLAG (1 << 2)
-#define MEMO_PROCESS_FLAG (1 << 3)
-#define MEMO_PID_FLAG (1 << 4)
-#define MEMO_TOPN_FLAG (1 << 5)
-#define MEMO_REVERSE_FLAG (1 << 6)
-#define MEMO_VSS_FLAG (1 << 7)
-
 int main(int argc, char *argv[]){
 
     int c, idx = 0, flags = 0;
-    // 格式 a 只有选项不带参数
-    // a:   其后需要跟参数
-    const static char *Qury = "agcktuprv";
+    int sortN = 10;
 
     enum {
         SI_OPTION = CHAR_MAX + 1,
@@ -38,9 +27,15 @@ int main(int argc, char *argv[]){
             {  "version",	no_argument,	    NULL,  'V'		},
             {  NULL,	0,		    NULL,  0		}
     };
+    // 格式 a 只有选项不带参数
+    // a:   其后需要跟参数
+    const static char *Qury = "gkupt:rvs:";
+
+    struct procs_show_settings procs_settings = {0, 10, NULL};
 
 
     while((c = getopt_long(argc, argv, Qury, longopts, &idx)) != -1){
+        // printf("%c \n", c);
         switch (c) {
             case 'g':
                 flags |= MEMO_GLOBAL_FLAG;
@@ -57,13 +52,25 @@ int main(int argc, char *argv[]){
             case 't':
                 flags |= MEMO_PROCESS_FLAG;
                 flags |= MEMO_TOPN_FLAG;
+                printf("%s \n", optarg);
+                procs_settings.show_nums = atoi(optarg);
+                break;
             case 'r':
+                flags |= MEMO_PROCESS_FLAG;
                 flags |= MEMO_REVERSE_FLAG;
+                break;
             case 'v':
                 flags |= MEMO_PROCESS_FLAG;
                 flags |= MEMO_VSS_FLAG;
+                break;
+            case 's':
+                flags |= MEMO_PID_FLAG;
+                flags |= MEMO_PROCESS_FLAG;
+                procs_settings.pids = optarg;
+                break;
             default:
-                printf("Error Command\n");
+                printf("Error Command, _%c_\n", c);
+                return -1;
         }
     }
 
@@ -77,17 +84,9 @@ int main(int argc, char *argv[]){
         used_memory_info();
     }
     if(flags & MEMO_PROCESS_FLAG){
-        if(flags & MEMO_PID_FLAG){
-            ;
-        }
-
-        if(flags & MEMO_TOPN_FLAG){
-            ;
-        }
-
-        if(flags & MEMO_PID_FLAG){
-            ;
-        }
+        procs_settings.flag = flags;
+        // printf("%s \n", procs_settings.pids);
+        user_procs(&procs_settings);
     }
     if(flags == 0){
         global_info();
