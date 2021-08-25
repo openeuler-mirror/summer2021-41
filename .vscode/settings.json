@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "readproc.h": "c"
+        "readproc.h": "c",
+        "getopt.h": "c",
+        "unistd.h": "c"
     }
 }

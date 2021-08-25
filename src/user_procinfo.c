@@ -339,6 +339,8 @@ void procs_show(unsigned int flag, proc_t **private_ppt, struct procs_show_setti
 
     if(pids == NULL){
         for(int i = 0; i < setting->show_nums ; i++){
+            private_ppt[i]->cmd[19] = '\0';
+            private_ppt[i]->ruser[9] = '\0';
             printf("%-10d | %-20s | %-10s | %-15ld kB | %-15ld kB |   %c\n" ,private_ppt[i]->tid,private_ppt[i]->cmd,
             private_ppt[i]->ruser, private_ppt[i]->vm_rss, private_ppt[i]->vm_size, private_ppt[i]->state);
         }
@@ -348,6 +350,8 @@ void procs_show(unsigned int flag, proc_t **private_ppt, struct procs_show_setti
             int find = 0;
             for(int j = 0; j < setting->show_nums; j++){
                 if(pids[i] == private_ppt[j]->tid){
+                    private_ppt[j]->cmd[19] = '\0';
+                    private_ppt[j]->ruser[9] = '\0';
                     printf("%-10d | %-20s | %-10s | %-15ld kB | %-15ld kB |   %c\n" ,private_ppt[j]->tid,private_ppt[j]->cmd,
                         private_ppt[j]->ruser, private_ppt[j]->vm_rss, private_ppt[j]->vm_size, private_ppt[j]->state); 
                     find = 1;

@@ -1,8 +1,24 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <getopt.h>
 #include <limits.h>
 #include "global_info.h"
 #include "user_procinfo.h"
+
+void show_help(){
+    fprintf(stderr, "Usage: memo [-g] [-k] [-u] [-r] [-v] [-p] [-t <topN>] [-s <PID1, PID2, ...>] \n");
+    fprintf(stderr, "   -g to show global memory usage info like free\n");
+    fprintf(stderr, "   -k to show kernel memory usage info \n");
+    fprintf(stderr, "   -u to show user memory usage info\n");
+    fprintf(stderr, "   -p to show processes memory usage info, default top 10, from big to small\n");
+    fprintf(stderr, "   -t <topN> to show topN processes memory usage info\n");
+    fprintf(stderr, "   -r reverse sort memory use from small to big\n");
+    fprintf(stderr, "   -v sort processes by VSS\n");
+    // fprintf(stderr, "-V to show the %s code version\n", prog_name);
+    fprintf(stderr, "   -s <PID1,PID2,...> to show special processes memory usage info split by ','\n");
+    exit(1);
+}
 
 int main(int argc, char *argv[]){
 
@@ -29,7 +45,7 @@ int main(int argc, char *argv[]){
     };
     // 格式 a 只有选项不带参数
     // a:   其后需要跟参数
-    const static char *Qury = "gkupt:rvs:";
+    const static char *Qury = "gkupt:rvs:nh";
 
     struct procs_show_settings procs_settings = {0, 10, NULL};
 
@@ -52,7 +68,7 @@ int main(int argc, char *argv[]){
             case 't':
                 flags |= MEMO_PROCESS_FLAG;
                 flags |= MEMO_TOPN_FLAG;
-                printf("%s \n", optarg);
+                // printf("%s \n", optarg);
                 procs_settings.show_nums = atoi(optarg);
                 break;
             case 'r':
@@ -68,8 +84,14 @@ int main(int argc, char *argv[]){
                 flags |= MEMO_PROCESS_FLAG;
                 procs_settings.pids = optarg;
                 break;
+            case 'n':
+                flags |= MEMO_NUMA_FLAG;
+                break;
+            case 'h':
+                show_help();
+                return -1;
             default:
-                printf("Error Command, _%c_\n", c);
+                show_help();
                 return -1;
         }
     }
