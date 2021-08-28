@@ -22,6 +22,7 @@ struct procs_show_settings{
 #define MEMO_REVERSE_FLAG (1 << 6)
 #define MEMO_VSS_FLAG (1 << 7)
 #define MEMO_NUMA_FLAG (1 << 8)
+#define MEMO_NUMA_M_FLAG (1 << 9)
 
 extern void user_memory_info();
 extern void user_procs(struct procs_show_settings* setting);

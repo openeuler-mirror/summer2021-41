@@ -36,7 +36,7 @@
 
 #include <proc/alloc.h>
 #include <proc/devname.h>
-#include <proc/numa.h>
+// #include <proc/numa.h>
 #include <proc/procps.h>
 #include <proc/readproc.h>
 #include <proc/sig.h>

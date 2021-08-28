@@ -5,6 +5,7 @@
 #include <limits.h>
 #include "global_info.h"
 #include "user_procinfo.h"
+#include "numa.h"
 
 void show_help(){
     fprintf(stderr, "Usage: memo [-g] [-k] [-u] [-r] [-v] [-p] [-t <topN>] [-s <PID1, PID2, ...>] \n");
@@ -17,6 +18,8 @@ void show_help(){
     fprintf(stderr, "   -v sort processes by VSS\n");
     // fprintf(stderr, "-V to show the %s code version\n", prog_name);
     fprintf(stderr, "   -s <PID1,PID2,...> to show special processes memory usage info split by ','\n");
+    fprintf(stderr, "   -n show numa stat\n");
+    fprintf(stderr, "   -m show numa memory usage\n");
     exit(1);
 }
 
@@ -45,13 +48,12 @@ int main(int argc, char *argv[]){
     };
     // 格式 a 只有选项不带参数
     // a:   其后需要跟参数
-    const static char *Qury = "gkupt:rvs:nh";
+    const static char *Qury = "gkupt:rvs:nhm";
 
     struct procs_show_settings procs_settings = {0, 10, NULL};
 
 
     while((c = getopt_long(argc, argv, Qury, longopts, &idx)) != -1){
-        // printf("%c \n", c);
         switch (c) {
             case 'g':
                 flags |= MEMO_GLOBAL_FLAG;
@@ -87,6 +89,9 @@ int main(int argc, char *argv[]){
             case 'n':
                 flags |= MEMO_NUMA_FLAG;
                 break;
+            case 'm':
+                flags |= MEMO_NUMA_M_FLAG;
+                break;
             case 'h':
                 show_help();
                 return -1;
@@ -109,6 +114,15 @@ int main(int argc, char *argv[]){
         procs_settings.flag = flags;
         // printf("%s \n", procs_settings.pids);
         user_procs(&procs_settings);
+    }
+
+    if(flags & MEMO_NUMA_FLAG){
+
+        numa_show(argc, argv);
+    }
+
+    if(flags & MEMO_NUMA_M_FLAG){
+        numa_show(argc, argv);
     }
     if(flags == 0){
         global_info();
