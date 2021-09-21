@@ -4,7 +4,7 @@
 https://gitee.com/openeuler-competition/summer-2021/issues/I3EG0G
 
 #### Software Architecture
-A software for especially for memory usage information collection.
+A software especially for memory usage information collection.
 
 #### Installation
 1. `sudo apt install libprocps-dev` install `libprocps` develop library, and check the library path in the `CMakeLists.txt`.
@@ -31,7 +31,7 @@ A software for especially for memory usage information collection.
    + -v sort processes by VSS
    + -s <PID1,PID2,...> to show special processes memory usage info split by ','
    + -n show numa stat
-   + -m show numa memory usage1.  xxxx
+   + -m show numa memory usage
 
 #### Contribution
 
